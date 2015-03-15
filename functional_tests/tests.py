@@ -31,6 +31,8 @@ class NewVisitorTest(LiveServerTestCase):
         self.assertEqual( inputbox.get_attribute('placeholder'), 'Enter a to-do item')
         inputbox.send_keys('Buy peacock feathers')
         inputbox.send_keys(Keys.ENTER)
+        edith_list_url = self.browser.current_url
+        self.assertRegex(edith_list_url, '/lists/.+')
         self.check_for_row_in_list_table('1: Buy peacock feathers')
 
         inputbox = self.browser.find_element_by_id('id_new_item')
@@ -39,7 +41,34 @@ class NewVisitorTest(LiveServerTestCase):
 
         self.check_for_row_in_list_table('1: Buy peacock feathers')
         self.check_for_row_in_list_table('2: Use peacock feathers to make a fly')
-        #Edith needs to save her list items
+
+        #New user comes along to the site
+        ## We're closing and opening the browser to create a new session
+        ## to check that none of Edith's stuff comes through cookies, etc
+        self.browser.quit()
+        self.browser = webdriver.Firefox()
+
+        #Check new user doesn't see Edith's list
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertNotIn('make a fly', page_text)
+
+        #New user, Francis, starts a new list
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy milk')
+        inputbox.send_keys(Keys.ENTER)
+
+        #New user gets unique url
+        francis_list_url = self.browser.current_url
+        self.assertRegex('francis_list_url', 'lists/.+')
+        self.assertNotEqual('francis_list_url', edith_list_url)
+
+        #Let's double check for the first user's, Edith, list
+        page_text = self.browser.find_elements_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+        self.assertIn('Buy milk', page_text)
+
         self.fail('Finish the test')
 
 if __name__ == '__main__':
