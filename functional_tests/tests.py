@@ -22,7 +22,7 @@ class NewVisitorTest(LiveServerTestCase):
         # Edith has heard about a cool new online to-do app. She goes to check its homepage
         self.browser.get(self.live_server_url)
 
-        # She notices the page title and header mention to-do listss
+        # She notices the page title and header mention to-do lists
         self.assertIn('To-Do', self.browser.title)
         header_text = self.browser.find_element_by_tag_name('h1').text
         self.assertIn('To-Do', header_text )
@@ -32,6 +32,7 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox.send_keys('Buy peacock feathers')
         inputbox.send_keys(Keys.ENTER)
         edith_list_url = self.browser.current_url
+        print('Edith_list_url is %s' % edith_list_url)
         self.assertRegex(edith_list_url, '/lists/.+')
         self.check_for_row_in_list_table('1: Buy peacock feathers')
 
