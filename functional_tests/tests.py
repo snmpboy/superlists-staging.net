@@ -1,20 +1,22 @@
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import unittest.case
 
 
-class NewVisitorTest(LiveServerTestCase):
+class NewVisitorTest(StaticLiveServerTestCase):
     def setUp(self):
         self.browser = webdriver.Firefox()
-        self.browser.implicitly_wait(3)
+        self.browser.implicitly_wait(5)
 
-    #def tearDown(self):
-    #   self.browser.quit()
+    def tearDown(self):
+       self.browser.quit()
 
     def check_for_row_in_list_table(self, row_text):
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
+        print("Row_text is %s" % row_text )
+        print("Row %s" %  [row.text for row in rows] )
         self.assertIn( row_text, [row.text for row in rows] )
 
 
@@ -39,8 +41,8 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox.send_keys('Use peacock feathers to make a fly' )
         inputbox.send_keys(Keys.ENTER)
 
-        self.check_for_row_in_list_table('1: Buy peacock feathers')
         self.check_for_row_in_list_table('2: Use peacock feathers to make a fly')
+        self.check_for_row_in_list_table('1: Buy peacock feathers')
 
         #New user comes along to the site
         ## We're closing and opening the browser to create a new session
@@ -61,6 +63,7 @@ class NewVisitorTest(LiveServerTestCase):
 
         #New user gets unique url
         francis_list_url = self.browser.current_url
+        print( "Print francis_list: %s" % francis_list_url )
         self.assertRegex(francis_list_url, '/lists/.+')
         self.assertNotEqual(francis_list_url, edith_list_url)
 
@@ -69,20 +72,10 @@ class NewVisitorTest(LiveServerTestCase):
         self.assertNotIn('Buy peacock feathers', page_text)
         self.assertIn('Buy milk', page_text)
 
-    def test_layout_and_styleing(self):
-        #Edith goes to the home page
+    def test_latyout_and_styling(self):
         self.browser.get(self.live_server_url)
         self.browser.set_window_size(1024, 768)
 
-        # She notices the centered input box
-        inputbox = self.browser.find_element_by_id('id_new_item')
-        self.assertAlmostEqual(
-            inputbox.location['x'] + inputbox.size['width'] / 2,
-            512,
-            delta = 5
-        )
-        # She starts a new list and sees the input is nicely centered
-        inputbox.send_keys('testing\n')
         inputbox = self.browser.find_element_by_id('id_new_item')
         self.assertAlmostEqual(
             inputbox.location['x'] + inputbox.size['width'] / 2,
@@ -90,9 +83,6 @@ class NewVisitorTest(LiveServerTestCase):
             delta=5
         )
 
-
-
         #self.fail('Finish the test')
 
-if __name__ == '__main__':
-    unittest.main(warnings='ignore')
+
